@@ -1,137 +1,181 @@
 namespace GuessNumber_DesignPatterns
 {
-    internal class Program
+    public class Player
     {
-        class Player
+        static Random rng = new Random();
+        static HumanPlayer humanplayer = new HumanPlayer();
+        static NaiveAI naiveAI = new NaiveAI();
+        static BinarySearchAI binarySearchAI = new BinarySearchAI();
+        static SuperAI superAI = new SuperAI();
+        int input_value;
+
+        public static int front { get; set; }
+        public static int end { get; set; }
+        public static int ans { get; set; }
+        public int guess_number { get; set; }
+        public string? Message { get; set; }
+        public static int SuperAI_mode { get; set; }
+        public virtual int Input() { return input_value; }
+
+
+        public void check(int x, int y, int player_mode)
         {
-            Random rng = new Random();
-            public int HumanPlayer()
+            front = x;
+            end = y;
+            SuperAI_mode = 0;
+            bool IsSuperAI_modeInitialized = false;
+
+            ans = rng.Next(front, end);
+
+            if (player_mode == 4 && !IsSuperAI_modeInitialized)
             {
-                int guess_number = int.Parse(Console.ReadLine());
-                return guess_number;
+                SuperAI_mode = rng.Next(1, 3);
+                IsSuperAI_modeInitialized = true;
             }
 
-            public int NaiveAIPlayer(int x, int y)
+            while (ans != guess_number)
             {
-                int guess_number = rng.Next(x, y);
-                return guess_number;
-            }
+                Console.WriteLine("({0}, {1})?", front, end);
 
-            public int BinarySearchAI(int x, int y)
-            {
-                int guess_number = ((y - x) / 2) + x;
-                return guess_number;
-            }
-
-            public int SuperAI(int x, int y, int mode)
-            {                
-                int guess_number = 0;
-                switch (mode)
+                switch (player_mode)
                 {
-                    case 1: guess_number = x; break;
-                    case 2: guess_number = y; break;
+                    case 1: guess_number = humanplayer.Input(); break;
+                    case 2: guess_number = naiveAI.Input(); break;
+                    case 3: guess_number = binarySearchAI.Input(); break;
+                    case 4: guess_number = superAI.Input(); break;
                 }
-                return guess_number;
-            }
-        }
-        class Game
-        {
-            public static string[] Check(int x, int y, int ans_number, int guess_number)
-            {
-                int front = x;
-                int end = y;
-                int ans = ans_number;
-                int guess = guess_number;
-                string message = "";
 
-                if ((front == ans && guess == ans + 1) || (end == ans && guess == ans - 1))
+                if (player_mode >= 2 && player_mode <= 4)
                 {
-                    message = "You loss!";
-                    guess = ans;
+                    Console.WriteLine(guess_number);
                 }
-                else if (guess < front || guess > end)
+
+                if ((front == ans && guess_number == ans + 1) || (end == ans && guess_number == ans - 1))
                 {
-                    message = "out of rang, tryagain.";
+                    //Console.WriteLine("You loss!");
+                    Message = "You loss!";
+                    guess_number = ans;
                 }
-                else if (guess == ans)
+                else if (guess_number < front || guess_number > end)
                 {
-                    message = "Bingo!!";
+                    //Console.WriteLine("out of rang, tryagain.");
+                    Message = "out of rang, tryagain.";
+                }
+                else if (guess_number == ans)
+                {
+                    //Console.WriteLine("Bingo!!");
+                    Message = "Bingo!!";
                 }
                 else
                 {
-                    if (guess >= front && ans > guess) front = guess + 1;
-                    if (guess <= end && ans < guess) end = guess - 1;
+                    if (guess_number >= front && ans > guess_number) front = guess_number + 1;
+                    if (guess_number <= end && ans < guess_number) end = guess_number - 1;
                 }
-
-                string[] result = new string[] { front.ToString(), end.ToString(), guess.ToString(), message};
-
-                return result;
+                if (!string.IsNullOrWhiteSpace(Message))
+                {
+                    Console.WriteLine(Message);
+                }
             }
         }
+    }
+
+    class HumanPlayer : Player
+    {
+        public override int Input()
+        {
+            while (true)
+            {
+                try
+                {
+                    int input_value = int.Parse(Console.ReadLine());
+                    return input_value;
+                }
+                catch (FormatException e)
+                {
+                    Console.WriteLine($"This is not integer，please try again!");
+                    Console.WriteLine($"ErrorMessage: {e.Message}");
+                }
+            }
+        }
+    }
+
+    class NaiveAI : Player
+    {
+        Random rng = new Random();
+        public override int Input()
+        {
+            return rng.Next(front, end);
+        }
+    }
+
+    class BinarySearchAI : Player
+    {
+        public override int Input()
+        {
+            int input_value = ((end - front) / 2) + front;
+            return input_value;
+        }
+    }
+
+    class SuperAI : Player
+    {
+        public override int Input()
+        {
+            switch (SuperAI_mode)
+            {
+                case 1: guess_number = front; break;
+                case 2: guess_number = end; break;
+            }
+            return guess_number;
+        }
+    }
+
+    internal class Program
+    {
         static void Main(string[] args)
         {
-            Console.WriteLine("GuessNumber Game");
-            Random rng = new Random();
             Player player = new Player();
+
+            int player_mode = 0;
+
+            while (true)
+            {
+                try
+                {
+                    Console.WriteLine("Please select player mode (1-4)?");
+                    Console.WriteLine("1. Human");
+                    Console.WriteLine("2. NaiveAI");
+                    Console.WriteLine("3. BinarySearchAI");
+                    Console.WriteLine("4. SuperAI");
+                    player_mode = int.Parse(Console.ReadLine());
+
+                    if (player_mode >= 1 && player_mode <= 4)
+                    {
+                        switch (player_mode)
+                        {
+                            case 1: Console.WriteLine("select HumanPlayer"); break;
+                            case 2: Console.WriteLine("select NaiveAI"); break;
+                            case 3: Console.WriteLine("select BinarySearchAI"); break;
+                            case 4: Console.WriteLine("select SuperAI"); break;
+                        }
+                        break;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Select out of rang，please try again!");
+                    }
+                }
+                catch (FormatException e)
+                {
+                    Console.WriteLine("The input format is incorrect, please enter a valid integer！");
+                    Console.WriteLine($"ErrorMessage: {e.Message}");
+                }
+            }
+
             int x = 0;
             int y = 99;
-            int ans = rng.Next(x, y);
-            int guess = 0;
-            string message = "";
-            int superAI_mode = 0;
-            //Console.WriteLine(ans);
+            player.check(x, y, player_mode);
 
-            //Player
-            int modeplayer = 0;
-            bool validInput = false;
-
-            while (!validInput)
-            {
-                Console.WriteLine("Who is play this game?");
-                Console.WriteLine("1. HumanPlayer");
-                Console.WriteLine("2. NaiveAI(Random)");
-                Console.WriteLine("3. BinarySearchAI(helf guess)");
-                Console.WriteLine("4. SuperAI(front/end start guess)");
-                modeplayer = int.Parse(Console.ReadLine());
-
-                if ( modeplayer >= 1 && modeplayer <= 4) validInput = true;
-                else Console.WriteLine("out of range, please enter 1~4.");
-            }
-            
-            if (modeplayer == 4)
-            {
-                superAI_mode = rng.Next(1, 3);
-            }
-            
-
-            while (ans != guess)
-            {
-                Console.WriteLine("({0}, {1})?", x, y);
-
-                switch (modeplayer)
-                {
-                    case 1: guess = player.HumanPlayer(); break;
-                    case 2: guess = player.NaiveAIPlayer(x, y); break;
-                    case 3: guess = player.BinarySearchAI(x, y); break;
-                    case 4: guess = player.SuperAI(x, y, superAI_mode); break;
-                }
-
-                if (modeplayer >= 2 && modeplayer <= 4)
-                {
-                    Console.WriteLine(guess);
-                }
-
-                string[] result = Game.Check(x, y, ans, guess);
-                x = int.Parse(result[0]);
-                y = int.Parse(result[1]);
-                guess = int.Parse(result[2]);
-                message = result[3];
-
-                if (message != "")
-                {
-                    Console.WriteLine(message);
-                }
-            }
         }
     }
 }
